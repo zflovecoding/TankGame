@@ -4,15 +4,27 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.Vector;
 
 //the drawing area of TankGame
 public class MyPanel extends JPanel implements KeyListener {
     //define my tank
     MyTank myTank = null;
+    //define enemy tanks put into vector considering multithreading
+    //Vector is thread-safe
+    Vector<EnemyTank> enemyTanks = new Vector<>();
+    //the numbers of enemy tanks
+    private int enemyTankNum = 3;
     //change the speed of tank should change it when initialization
     public MyPanel(){
         myTank = new MyTank(100,100);//initialization my tank
         myTank.setSpeed(5);
+        //initialize enemy tanks
+        for (int i = 0; i < enemyTankNum; i++) {
+            EnemyTank enemyTank = new EnemyTank((100 * (i + 1)), 0);
+            enemyTank.setDirect(2);
+            enemyTanks.add(enemyTank);
+        }
     }
 
     @Override
@@ -21,7 +33,10 @@ public class MyPanel extends JPanel implements KeyListener {
         g.fillRect(0,0,1000,750);//fill the rectangle,default black
         //draw tank here----package into a method to draw tank
         drawTank(myTank.getX(),myTank.getY(),g,myTank.getDirect(),0);
-
+        //draw enemy tanks
+        for (int i = 0; i < enemyTanks.size(); i++) {
+            drawTank(enemyTanks.get(i).getX(),enemyTanks.get(i).getY(),g,enemyTanks.get(i).getDirect(),1);
+        }
     }
 //the method draw tank
     /**
