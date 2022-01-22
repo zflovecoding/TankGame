@@ -3,6 +3,35 @@ package com.geekpig.tankgame2;
 public class Tank {
     private int x;//the x coordinate of tank
     private int y;//the y coordinate of tank
+    private int direct;//the direction of tank which will decide the tank status
+    private int speed=1;
+    public void moveUp(){
+        y -= speed;
+    }
+    public void moveDown(){
+        y += speed;
+    }
+    public void moveLeft(){
+        x -= speed;
+    }
+    public void moveRight(){
+        x += speed;
+    }
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+
+    public int getDirect() {
+        return direct;
+    }
+
+    public void setDirect(int direct) {
+        this.direct = direct;
+    }
 
     public Tank(int x, int y) {
         this.x = x;
