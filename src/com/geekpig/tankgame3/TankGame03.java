@@ -21,7 +21,5 @@ public class TankGame03 extends JFrame {
         this.setVisible(true);
         this.addKeyListener(mp);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-
     }
 }

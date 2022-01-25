@@ -24,7 +24,18 @@ public class MyPanel extends JPanel implements KeyListener ,Runnable{
         for (int i = 0; i < enemyTankNum; i++) {
             EnemyTank enemyTank = new EnemyTank((100 * (i + 1)), 0);
             enemyTank.setDirect(2);
+            //when create a tank ,then create a bullet of the tank
+            //the x & y coordinate of bullet should adjust to the line of tank
+            Shoot shoot = new Shoot(enemyTank.getX()+20,enemyTank.getY()+60,enemyTank.getDirect());
+            //add the tank bullet to the Vector in EnemyTank
+            enemyTank.shoots.add(shoot);
+            //start up the thread
+            new Thread(shoot).start();
             enemyTanks.add(enemyTank);
+
+
+
+
         }
     }
 
@@ -36,8 +47,22 @@ public class MyPanel extends JPanel implements KeyListener ,Runnable{
         drawTank(myTank.getX(),myTank.getY(),g,myTank.getDirect(),0);
         //draw enemy tanks
         for (int i = 0; i < enemyTanks.size(); i++) {
-            drawTank(enemyTanks.get(i).getX(),enemyTanks.get(i).getY(),g,enemyTanks.get(i).getDirect(),1);
+            EnemyTank enemyTank = enemyTanks.get(i);
+            drawTank(enemyTank.getX(),enemyTank.getY(),g,enemyTank.getDirect(),1);
+            //bullets of enemyTank need to repaint constantly
+            //take out all the bullets of tank
+            for(int j=0;j<enemyTank.shoots.size();j++){
+                Shoot shoot = enemyTank.shoots.get(j);
+                if(shoot.isAlive){
+                    g.draw3DRect(shoot.getX(),shoot.getY(),1,1,false);
+                }else {
+                    //remove the dead bullets from Vector ,Or it will be painted constantly
+                    enemyTank.shoots.remove(shoot);
+                }
+
+            }
         }
+        //draw the bullet of myTank
         if(myTank.shoot!=null && myTank.shoot.isAlive){
 
             g.draw3DRect(myTank.shoot.getX(),myTank.shoot.getY(),1,1,false);

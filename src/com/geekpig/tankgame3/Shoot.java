@@ -4,7 +4,7 @@ public class Shoot implements  Runnable{
     private int x;//the x coordinate of bullets
     private int y;//the y coordinate of bullets
     private int direct=0;//the direction of bullets
-    int speed = 2;
+    private int speed = 2;
 
     public int getX() {
         return x;
