@@ -24,7 +24,7 @@ public class MyPanel extends JPanel implements KeyListener ,Runnable{
     Image image3 =  null;
     //change the speed of tank should change it when initialization
     public MyPanel(){
-        myTank = new MyTank(100,100);//initialization my tank
+        myTank = new MyTank(400,400);//initialization my tank
         myTank.setSpeed(5);
         //initialize enemy tanks
         for (int i = 0; i < enemyTankNum; i++) {
@@ -53,7 +53,10 @@ public class MyPanel extends JPanel implements KeyListener ,Runnable{
         super.paint(g);
         g.fillRect(0,0,1000,750);//fill the rectangle,default black
         //draw tank here----package into a method to draw tank
-        drawTank(myTank.getX(),myTank.getY(),g,myTank.getDirect(),0);
+        if(myTank.isAlive){
+            drawTank(myTank.getX(),myTank.getY(),g,myTank.getDirect(),0);
+        }
+
         //draw enemy tanks
         for (int i = 0; i < enemyTanks.size(); i++) {
             EnemyTank enemyTank = enemyTanks.get(i);
@@ -75,11 +78,22 @@ public class MyPanel extends JPanel implements KeyListener ,Runnable{
             }
 
         }
-        //draw the bullet of myTank
-        if(myTank.shoot!=null && myTank.shoot.isAlive){
+        //画出myTank射击的子弹
+        if (myTank.shoot != null && myTank.shoot.isAlive == true) {
+            g.draw3DRect(myTank.shoot.getX(), myTank.shoot.getY(), 1, 1, false);
 
-            g.draw3DRect(myTank.shoot.getX(),myTank.shoot.getY(),1,1,false);
         }
+        //draw the bullet of myTank
+//        for (int i = 0; i < myTank.shoots.size(); i++) {
+//            Shoot shoot = myTank.shoots.get(i);
+//            if(shoot!=null && shoot.isAlive){
+//
+//                g.draw3DRect(shoot.getX(),shoot.getY(),1,1,false);
+//            }else{
+//                myTank.shoots.remove(shoot);
+//            }
+//        }
+
         //if bombs Vector consists obj ,draw the bomb
         for (int i = 0; i < bombs.size(); i++) {
             //take the bomb out of the Vector
@@ -163,32 +177,75 @@ public class MyPanel extends JPanel implements KeyListener ,Runnable{
 
 
     }
+    //如果我们的坦克可以发射多个子弹
+    //在判断我方子弹是否击中敌人坦克时，就需要把我们的子弹集合中
+    //所有的子弹，都取出和敌人的所有坦克，进行判断
+    public  void hitMyTank(){
+        for (int i = 0; i < enemyTanks.size(); i++) {
+            EnemyTank enemyTank =enemyTanks.get(i);
+            for (int i1 = 0; i1 < enemyTank.shoots.size(); i1++) {
+                Shoot shoot = enemyTank.shoots.get(i1);
+                if(myTank.isAlive && shoot.isAlive){
+                    hitTank(shoot,myTank);
+                }
+            }
+        }
+    }
+
+    public void hitEnemyTank(){
+        //遍历我们的子弹
+//        for (int i = 0; i < myTank.shoots.size(); i++) {
+//            Shoot shoot = myTank.shoots.get(i);
+        //判断是否击中了敌人坦克
+//            if(shoot!=null && shoot.isAlive){
+
+        //遍历敌人所有的坦克
+//                for(int j=0;j<enemyTanks.size();j++){
+//                    EnemyTank enemyTank = enemyTanks.get(j);
+//                    hitTank(shoot,enemyTank);
+//                }
+//            }
+//        }
+
+        //单颗子弹。
+        if (myTank.shoot != null && myTank.shoot.isAlive) {//当我的子弹还存活
+
+            //遍历敌人所有的坦克
+            for (int i = 0; i < enemyTanks.size(); i++) {
+                EnemyTank enemyTank = enemyTanks.get(i);
+                hitTank(myTank.shoot, enemyTank);
+            }
+
+        }
+
+    }
     //the method detect when our bullets hit enemyTank
     //when to judge whether myTank hits enemy---->run() method
-    public void hitTank(Shoot s ,EnemyTank enemyTank){
+    //this method is to judge if tank(both myTank and enemyTank) is hit ,
+    public void hitTank(Shoot s , Tank Tank){
 
-        switch (enemyTank.getDirect()){
+        switch (Tank.getDirect()){
             case 0://up
             case 2://down
-                if(s.getX() > enemyTank.getX() && s.getX() <enemyTank.getX()+40
-                && s.getY()>enemyTank.getY() && s.getY() < enemyTank.getY()+60 ){
+                if(s.getX() > Tank.getX() && s.getX() < Tank.getX()+40
+                && s.getY()>Tank.getY() && s.getY() < Tank.getY()+60 &&  Tank.isAlive){
                     s.isAlive = false;
-                    enemyTank.isAlive =false;
+                    Tank.isAlive =false;
                     //remove dead tank from Vector<EnemyTank>-------->//my solution:if( ...  && enemyTank.isAlive)
-                    enemyTanks.remove(enemyTank);
+                    enemyTanks.remove( Tank);
                     //create bomb obj ,add to the Vector
-                    Bomb bomb = new Bomb(enemyTank.getX(),enemyTank.getY());
+                    Bomb bomb = new Bomb( Tank.getX(), Tank.getY());
                     bombs.add(bomb);
 
                 }
                 break;
             case 1://right
             case 3://left
-                if(s.getX() > enemyTank.getX() && s.getX() <enemyTank.getX()+60
-                        && s.getY()>enemyTank.getY() && s.getY() < enemyTank.getY()+40){
+                if(s.getX() >  Tank.getX() && s.getX() < Tank.getX()+60
+                        && s.getY()> Tank.getY() && s.getY() <  Tank.getY()+40&&  Tank.isAlive){
                     s.isAlive = false;
-                    enemyTank.isAlive = false;
-                    Bomb bomb = new Bomb(enemyTank.getX(),enemyTank.getY());
+                     Tank.isAlive = false;
+                    Bomb bomb = new Bomb( Tank.getX(), Tank.getY());
                     bombs.add(bomb);
                 }
                 break;
@@ -231,7 +288,10 @@ public class MyPanel extends JPanel implements KeyListener ,Runnable{
         }
         //if listen key "J" pressed , myTank will shoot a bullet
         if(e.getKeyCode() == KeyEvent.VK_J){
-            myTank.shootEnemyTank();
+            if(myTank.shoot == null || !myTank.shoot.isAlive){
+                myTank.shootEnemyTank();
+            }
+            //myTank.shootEnemyTank();
         }
         this.repaint();//repaint the panel to refresh
     }
@@ -249,17 +309,12 @@ public class MyPanel extends JPanel implements KeyListener ,Runnable{
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            //judge whether our bullets hit enemies
+
             //before press "J" myTank.shoot == null --> NullPointerException
-
-            if(myTank.shoot!=null && myTank.shoot.isAlive){
-
-                for (int i = 0; i < enemyTanks.size(); i++) {
-                    EnemyTank enemyTank = enemyTanks.get(i);
-                    hitTank(myTank.shoot,enemyTank);
-
-                }
-            }
+            //judge whether our bullets hit enemies
+            hitEnemyTank();
+            //judge whether myTank is hit by enemyTank
+            hitMyTank();
             this.repaint();
         }
 

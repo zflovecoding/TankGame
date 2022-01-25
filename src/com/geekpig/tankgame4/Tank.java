@@ -5,6 +5,7 @@ public class Tank {
     private int y;//the y coordinate of tank
     private int direct;//the direction of tank which will decide the tank status
     private int speed=1;
+    boolean isAlive = true;
     public void moveUp(){
         y -= speed;
     }
