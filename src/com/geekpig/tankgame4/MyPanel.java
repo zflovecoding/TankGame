@@ -244,7 +244,9 @@ public class MyPanel extends JPanel implements KeyListener ,Runnable{
                 if(s.getX() >  Tank.getX() && s.getX() < Tank.getX()+60
                         && s.getY()> Tank.getY() && s.getY() <  Tank.getY()+40&&  Tank.isAlive){
                     s.isAlive = false;
-                     Tank.isAlive = false;
+                    Tank.isAlive = false;
+                    //remove dead tank from Vector<EnemyTank>
+                    enemyTanks.remove( Tank);
                     Bomb bomb = new Bomb( Tank.getX(), Tank.getY());
                     bombs.add(bomb);
                 }
