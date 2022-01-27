@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.File;
 import java.util.Vector;
 
 //the drawing area of TankGame
@@ -19,40 +20,93 @@ public class MyPanel extends JPanel implements KeyListener ,Runnable{
     //put the bombs into a Vector
     Vector<Bomb> bombs = new Vector<>();
     //define three pics to display explosion
+    Vector<Node> nodes = new Vector<>();
     Image image1 =  null;
     Image image2 =  null;
     Image image3 =  null;
     //change the speed of tank should change it when initialization
-    public MyPanel(){
+    public MyPanel(String key){
+        //1 new game
+        //2 continue the last game
+        //先判断记录的文件是否存在
+        //如果存在，就正常执行，如果文件不存在，提示，只能开启新游戏，key = "1"
+        File file = new File(Recorder.getFilePath());
+        if (file.exists()) {
+            nodes = Recorder.getNodesAndEnemyTankRec();
+        } else {
+            System.out.println("文件不存在，只能开启新的游戏");
+            key = "1";
+        }
+        Recorder.setEnemyTanks(enemyTanks);
         myTank = new MyTank(400,400);//initialization my tank
         myTank.setSpeed(5);
-        //initialize enemy tanks
-        for (int i = 0; i < enemyTankNum; i++) {
-            EnemyTank enemyTank = new EnemyTank((100 * (i + 1)), 0);
-            //将enemyTanks 设置给 enemyTank !!!
-            enemyTank.setEnemyTanks(enemyTanks);
-            enemyTank.setDirect(2);
-            //when create a tank ,then create a bullet of the tank
-            //the x & y coordinate of bullet should adjust to the line of tank
-            Shoot shoot = new Shoot(enemyTank.getX()+20,enemyTank.getY()+60,enemyTank.getDirect());
-            //add the tank bullet to the Vector in EnemyTank
-            enemyTank.shoots.add(shoot);
-            //start up the shoot thread
-            new Thread(shoot).start();
-            enemyTanks.add(enemyTank);
-            //start upo the enemyTank thread
-            new Thread(enemyTank).start();
+        switch(key){
+            case "1":
+                //initialize enemy tanks
+                for (int i = 0; i < enemyTankNum; i++) {
+                    EnemyTank enemyTank = new EnemyTank((100 * (i + 1)), 0);
+                    //将enemyTanks 设置给 enemyTank !!!
+                    enemyTank.setEnemyTanks(enemyTanks);
+                    enemyTank.setDirect(2);
+                    //when create a tank ,then create a bullet of the tank
+                    //the x & y coordinate of bullet should adjust to the line of tank
+                    Shoot shoot = new Shoot(enemyTank.getX()+20,enemyTank.getY()+60,enemyTank.getDirect());
+                    //add the tank bullet to the Vector in EnemyTank
+                    enemyTank.shoots.add(shoot);
+                    //start up the shoot thread
+                    new Thread(shoot).start();
+                    enemyTanks.add(enemyTank);
+                    //start upo the enemyTank thread
+                    new Thread(enemyTank).start();
+                }
+                break;
+            case "2":
+                //继续上局游戏
+                for (int i = 0; i < nodes.size(); i++) {
+                    Node node = nodes.get(i);
+                    EnemyTank enemyTank = new EnemyTank(node.getX(),node.getY());
+                    //将enemyTanks 设置给 enemyTank !!!
+                    enemyTank.setEnemyTanks(enemyTanks);
+                    enemyTank.setDirect(node.getDirect());
+                    //when create a tank ,then create a bullet of the tank
+                    //the x & y coordinate of bullet should adjust to the line of tank
+                    Shoot shoot = new Shoot(enemyTank.getX()+20,enemyTank.getY()+60,enemyTank.getDirect());
+                    //add the tank bullet to the Vector in EnemyTank
+                    enemyTank.shoots.add(shoot);
+                    //start up the shoot thread
+                    new Thread(shoot).start();
+                    enemyTanks.add(enemyTank);
+                    //start upo the enemyTank thread
+                    new Thread(enemyTank).start();
+                }
+                break;
+            default:
+                System.out.println("你的输入有误...");
         }
+
         //init the image obj
         image1 = Toolkit.getDefaultToolkit().getImage((Panel.class.getResource("/bomb_1.gif")));
         image2 = Toolkit.getDefaultToolkit().getImage((Panel.class.getResource("/bomb_2.gif")));
         image3 = Toolkit.getDefaultToolkit().getImage((Panel.class.getResource("/bomb_3.gif")));
 
-    }
 
+        new AePlayWave("src\\111.wav").start();
+    }
+    public  void showInfo(Graphics g){
+        //画出玩家的总成绩
+        g.setColor(Color.BLACK);
+        Font font = new Font("宋体", Font.BOLD, 25);
+        g.setFont(font);
+
+        g.drawString("您累积击毁敌方坦克", 1020, 30);
+        drawTank(1020, 60, g, 0, 1);//画出一个敌方坦克
+        g.setColor(Color.BLACK);//这里需要重新设置成黑色
+        g.drawString(Recorder.getAllEnemyTankNum() + "", 1080, 100);
+    }
     @Override
     public void paint(Graphics g) {
         super.paint(g);
+        showInfo(g);
         g.fillRect(0,0,1000,750);//fill the rectangle,default black
         //draw tank here----package into a method to draw tank
         if(myTank.isAlive){
@@ -233,6 +287,9 @@ public class MyPanel extends JPanel implements KeyListener ,Runnable{
                 && s.getY()>Tank.getY() && s.getY() < Tank.getY()+60 &&  Tank.isAlive){
                     s.isAlive = false;
                     Tank.isAlive =false;
+                    if(Tank instanceof  EnemyTank){
+                        Recorder.addAllEnemyTankNum();
+                    }
                     //remove dead tank from Vector<EnemyTank>-------->//my solution:if( ...  && enemyTank.isAlive)
                     enemyTanks.remove( Tank);
                     //create bomb obj ,add to the Vector
@@ -247,6 +304,9 @@ public class MyPanel extends JPanel implements KeyListener ,Runnable{
                         && s.getY()> Tank.getY() && s.getY() <  Tank.getY()+40&&  Tank.isAlive){
                     s.isAlive = false;
                     Tank.isAlive = false;
+                    if(Tank instanceof  EnemyTank){
+                        Recorder.addAllEnemyTankNum();
+                    }
                     //remove dead tank from Vector<EnemyTank>
                     enemyTanks.remove( Tank);
                     Bomb bomb = new Bomb( Tank.getX(), Tank.getY());
